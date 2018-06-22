@@ -36,6 +36,12 @@ public class CharactersList implements Parcelable {
 
     };
 
+    public CharactersList() {
+        this.count = 0;
+        this.next = null;
+        this.previous = null;
+    }
+
     private CharactersList(Parcel in) {
         this.count = ((Integer) in.readValue((Integer.class.getClassLoader())));
         this.next = ((String) in.readValue((String.class.getClassLoader())));

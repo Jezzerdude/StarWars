@@ -1,29 +1,25 @@
 package jeremy.code.starwars.View.UI;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
 
 import jeremy.code.starwars.API.Model.CharactersList;
-import jeremy.code.starwars.API.Repository.SWApi;
-import jeremy.code.starwars.API.Repository.SWApiClient;
 import jeremy.code.starwars.R;
-import jeremy.code.starwars.Util.Util;
-import jeremy.code.starwars.View.Adapter.RecyclerViewCharacterAdapter;
 import jeremy.code.starwars.View.Listener.RecyclerItemClickListener;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import jeremy.code.starwars.View.Adapter.RecyclerViewCharacterAdapter;
+import jeremy.code.starwars.Util.Util;
+import jeremy.code.starwars.ViewModel.CharacterListViewModel;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,7 +38,10 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);
 
-        getCharacterList();
+        mRecyclerView.setAdapter(new RecyclerViewCharacterAdapter(new CharactersList()));
+
+        refreshData();
+
         mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(MainActivity.this, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
@@ -53,23 +52,28 @@ public class MainActivity extends AppCompatActivity {
         }));
     }
 
-    @Override
-    public boolean onCreateOptionsMenu (Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.action_refresh){
-            mProgressBar.setVisibility(View.VISIBLE);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-            getCharacterList();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    private void observeViewModel(final CharacterListViewModel viewModel) {
+        viewModel.getCharacterListLiveData().observe(this, new Observer<CharactersList>() {
+            @Override
+            public void onChanged(@Nullable CharactersList charactersList) {
+                if (charactersList != null) {
+                    setCharacterAdapter(charactersList);
+                    hideProgressBar();
+                } else {
+                    Snackbar errorMessageSnack = Snackbar.
+                            make(findViewById(R.id.main_constrain_layout), R.string.error_message, Snackbar.LENGTH_INDEFINITE);
+                    errorMessageSnack.setAction(R.string.refresh_button, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            refreshData();
+                        }
+                    });
+                    errorMessageSnack.show();
+                    hideProgressBar();
+                }
+            }
+        });
     }
 
     private void setCharacterAdapter(@NonNull CharactersList charactersList) {
@@ -80,33 +84,16 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(adapter);
     }
 
-    private void getCharacterList() {
-        final SWApi api = SWApiClient.getClient().create(SWApi.class);
-        final Call<CharactersList> getCharactersServiceCall = api.getCharacterList();
-        getCharactersServiceCall.clone().enqueue(new Callback<CharactersList>() {
+    private void refreshData() {
+        showProgressBar();
+        CharacterListViewModel viewModel = ViewModelProviders.of(this).get(CharacterListViewModel.class);
+        observeViewModel(viewModel);
+    }
 
-            @Override
-            public void onResponse(@NonNull Call<CharactersList> call, @NonNull Response<CharactersList> response) {
-                if(response.body() != null) {
-                    setCharacterAdapter(response.body());
-                }
-                hideProgressBar();
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<CharactersList> call, @NonNull Throwable t) {
-                Snackbar errorMessageSnack = Snackbar.
-                        make(findViewById(R.id.main_constrain_layout), R.string.error_message, Snackbar.LENGTH_INDEFINITE);
-                errorMessageSnack.setAction(R.string.refresh_button, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        getCharacterList();
-                    }
-                });
-                errorMessageSnack.show();hideProgressBar();
-            }
-
-        });
+    private void showProgressBar() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
     private void hideProgressBar() {

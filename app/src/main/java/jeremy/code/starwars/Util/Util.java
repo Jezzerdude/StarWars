@@ -14,22 +14,16 @@ public class Util {
 
     @NonNull
     public static String convertCentimetersToMeters(@NonNull String centimeters) {
-        if (centimeters != null) {
-            int centimetersInteger = Integer.parseInt(centimeters);
-            return String.valueOf(centimetersInteger / 100) +
-                    "." +
-                    centimetersInteger % 100 +
-                    "m";
-        }
-        return null;
+        int centimetersInteger = Integer.parseInt(centimeters);
+        return String.valueOf(centimetersInteger / 100) +
+                "." +
+                centimetersInteger % 100 +
+                "m";
     }
 
     @NonNull
     public static String parseKilograms(@NonNull String mass) {
-        if(mass != null) {
-            return mass + "kg";
-        }
-        return null;
+        return mass + "kg";
     }
 
     @NonNull

@@ -20,6 +20,13 @@ public class Result implements Parcelable {
     @Expose
     private String created;
 
+    public Result(String name, String height, String mass, String created) {
+        this.name = name;
+        this.height = height;
+        this.mass = mass;
+        this.created = created;
+    }
+
     public final static Parcelable.Creator<Result> CREATOR = new Creator<Result>() {
         @SuppressWarnings({
                 "unchecked"
