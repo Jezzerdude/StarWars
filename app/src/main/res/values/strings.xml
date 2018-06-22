@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">StarWars</string>
+    <string name="refresh_button">Refresh</string>
+    <string name="error_message">An error has occurred. Please try again</string>
+
+    <string name="character_name">Name</string>
+    <string name="character_height">Height</string>
+    <string name="character_weight">Mass</string>
+    <string name="character_creation">Creation</string>
+</resources>
